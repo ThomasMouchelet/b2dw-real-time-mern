@@ -8,6 +8,7 @@ const socket = io("http://localhost:8000");
 const SocketProvider = ({ children }) => {
   const [usersConnectedList, setUsersConnectedList] = useState([])
   const [messagesList, setMessagesList] = useState([])
+  const [roomsList, setRoomsList] = useState([])
   
   useEffect(() => {
         socket.on('connect', () => {
@@ -22,12 +23,17 @@ const SocketProvider = ({ children }) => {
           
         })
         socket.on('responseAllusersConnectedList', usersConnectedListPayload => {
-          console.log(usersConnectedListPayload);
-          console.log('usersConnectedList', usersConnectedList);
-          setUsersConnectedList([...usersConnectedListPayload]);
+          const usersConnectedListPayloadFilter = usersConnectedListPayload.filter(user => user !== socket.id)
+
+          setUsersConnectedList([...usersConnectedListPayloadFilter]);
         })
         socket.on('responseAllMessages', messagesListPayload => { 
           setMessagesList([...messagesListPayload])
+        })
+        socket.on('responseCreateRoom', data => {
+          console.log('responseCreateRoom data', data);
+          // set in state roomList
+          setRoomsList([...data])
         })
     }, [])
 
@@ -39,7 +45,8 @@ const SocketProvider = ({ children }) => {
     }
 
     const createNewRoom = (userTosentId) => {
-        socket.emit('createNewRoom', userTosentId);
+      console.log('userTosentId', userTosentId);
+      socket.emit('createNewRoom', userTosentId);
     }
 
     return <SocketContext.Provider value={{
@@ -48,7 +55,8 @@ const SocketProvider = ({ children }) => {
         sendMessage,
         messagesList,
         setMessagesList,
-        createNewRoom
+        createNewRoom,
+        roomsList
     }}>{children}</SocketContext.Provider>;
 }
 

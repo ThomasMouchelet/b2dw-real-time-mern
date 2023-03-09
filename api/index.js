@@ -32,28 +32,43 @@ app.get('/rooms/:id', (req, res) => {
     res.send(room)
 })
 
+const getRommsList = (soketID) => {
+    return roomsList.filter(room => room.usersList.includes(soketID))
+}
+
+const getCurrentSocketUserRoomsList = (socket) => {
+    const myRoomList = getRommsList(socket.id)
+    socket.emit("responseCreateRoom", myRoomList);
+}
+
 io.on('connection', (socket) => {
     usersConnectedList.push(socket.id);
     
     io.emit('responseAllusersConnectedList', usersConnectedList);
-    // io.emit('responseAllMessages', messagesList);
+
+    getCurrentSocketUserRoomsList(socket)
 
     socket.on('createNewRoom', (userTosentId) => {
+        console.log('my user id', socket.id);
+        console.log('userTosentId', userTosentId);
+
         const room = roomsList.find(room => room.usersList.includes(userTosentId) && room.usersList.includes(socket.id))
 
-        if (room) {
-            io.emit('responseNewRoom', room);
-            const userToSent = room.usersList.find(user => user !== socket.id)
-            io.to(userToSent).emit('responseNewRoom', room);
-        } else {
-            const newRoom = {
+        // if room not exist create new room
+        if(!room) {
+            // create room
+            // add room to roomsList
+            roomsList.push({
                 id: roomsList.length + 1,
                 usersList: [userTosentId, socket.id],
                 messagesList: []
-            }
-            roomsList.push(newRoom)
-            io.emit('responseNewRoom', newRoom);
+            })
         }
+        
+        const userTosentRommList = getRommsList(userTosentId)
+        io.to(userTosentId).emit("responseCreateRoom", userTosentRommList);
+        
+        getCurrentSocketUserRoomsList(socket)
     })
 
     socket.on('sendMessage', (data) => {
