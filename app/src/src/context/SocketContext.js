@@ -1,4 +1,5 @@
 import { createContext, useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import io from 'socket.io-client';
 
 const SocketContext = createContext();
@@ -9,6 +10,8 @@ const SocketProvider = ({ children }) => {
   const [usersConnectedList, setUsersConnectedList] = useState([])
   const [messagesList, setMessagesList] = useState([])
   const [roomsList, setRoomsList] = useState([])
+  const [currentRoom, setCurrentRoom] = useState({})
+  const [updateRoomData, setUpdateRoomData] = useState({})
   
   useEffect(() => {
         socket.on('connect', () => {
@@ -24,15 +27,12 @@ const SocketProvider = ({ children }) => {
         })
         socket.on('responseAllusersConnectedList', usersConnectedListPayload => {
           const usersConnectedListPayloadFilter = usersConnectedListPayload.filter(user => user !== socket.id)
-
           setUsersConnectedList([...usersConnectedListPayloadFilter]);
         })
-        socket.on('responseAllMessages', messagesListPayload => { 
-          setMessagesList([...messagesListPayload])
+        socket.on('responseAllMessages', roomPayload => { 
+          setUpdateRoomData({...roomPayload})
         })
         socket.on('responseCreateRoom', data => {
-          console.log('responseCreateRoom data', data);
-          // set in state roomList
           setRoomsList([...data])
         })
     }, [])
@@ -56,7 +56,9 @@ const SocketProvider = ({ children }) => {
         messagesList,
         setMessagesList,
         createNewRoom,
-        roomsList
+        roomsList,
+        setCurrentRoom,
+        updateRoomData
     }}>{children}</SocketContext.Provider>;
 }
 

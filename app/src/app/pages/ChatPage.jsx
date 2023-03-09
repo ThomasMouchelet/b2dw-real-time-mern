@@ -11,18 +11,24 @@ import UserList from '../components/user/UserList';
 const ChatPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { setMessagesList } = useContext(SocketContext);
+    const { setMessagesList, setCurrentRoom, updateRoomData } = useContext(SocketContext);
 
     useEffect(() => {
         if(!id) navigate('/rooms/1')
         fetchRoomById()
     },[id])
 
+    useEffect(() => {
+        if(!updateRoomData.id) return;
+        setMessagesList([...updateRoomData.messagesList])
+    }, [updateRoomData])
+
     const fetchRoomById = async () => {
         try {
             const response = await fetch(`http://localhost:8000/rooms/${id}`)
             const room = await response.json();
             setMessagesList([...room.messagesList])
+            setCurrentRoom(room)
         } catch (error) {
             console.log(error);
         }

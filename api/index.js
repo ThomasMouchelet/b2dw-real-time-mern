@@ -46,8 +46,6 @@ io.on('connection', (socket) => {
     
     io.emit('responseAllusersConnectedList', usersConnectedList);
 
-    getCurrentSocketUserRoomsList(socket)
-
     socket.on('createNewRoom', (userTosentId) => {
         console.log('my user id', socket.id);
         console.log('userTosentId', userTosentId);
@@ -73,12 +71,16 @@ io.on('connection', (socket) => {
 
     socket.on('sendMessage', (data) => {
         const { message, id } = data;
+        console.log('sendMessage message ', message);
+        console.log('sendMessage id', id);
         const room = roomsList.find(room => room.id === Number(id))
         room.messagesList.push({
             owner_socker_id: socket.id,
             content: message
         })
-        io.emit('responseAllMessages', room.messagesList);
+        console.log('sendMessage room', room);
+        console.log('sendMessage roomsList', roomsList);
+        io.emit('responseAllMessages', room);
     })
 
     socket.on('disconnect', () => {
